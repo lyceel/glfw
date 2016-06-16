@@ -4,9 +4,13 @@
 
 @section news_33 New features in 3.3
 
+@subsection news_33_maximize Window maximization callback
+
+GLFW now supports window maximization notifications with @ref
+glfwSetWindowMaximizeCallback.
+
 
 @section news_32 New features in 3.2
-
 
 @subsection news_32_vulkan Support for Vulkan
 

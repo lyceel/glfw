@@ -99,6 +99,8 @@ information on what to include when reporting a bug.
 
 ## Changelog
 
+- Added glfwSetWindowMaximizeCallback and GLFWwindowmaximizefun for receiving
+  window maximization events (#778)
 - Bugfix: Calling `glfwMaximizeWindow` on a full screen window was not ignored
 
 
