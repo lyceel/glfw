@@ -3,7 +3,7 @@
  * A library for OpenGL, window and input
  *------------------------------------------------------------------------
  * Copyright (c) 2002-2006 Marcus Geelnard
- * Copyright (c) 2006-2016 Camilla Berglund <elmindreda@glfw.org>
+ * Copyright (c) 2006-2016 Camilla Löwy <elmindreda@glfw.org>
  *
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -45,12 +45,13 @@ extern "C" {
  *  more information.
  */
 /*! @defgroup native Native access
+ *  @brief Functions related to accessing native handles.
  *
  *  **By using the native access functions you assert that you know what you're
  *  doing and how to fix problems caused by using them.  If you don't, you
  *  shouldn't be using them.**
  *
- *  Before the inclusion of @ref glfw3native.h, you may define exactly one
+ *  Before the inclusion of @ref glfw3native.h, you may define zero or more
  *  window system API macro and zero or more context creation API macros.
  *
  *  The chosen backends must match those the library was compiled for.  Failure
@@ -68,6 +69,7 @@ extern "C" {
  *  * `GLFW_EXPOSE_NATIVE_NSGL`
  *  * `GLFW_EXPOSE_NATIVE_GLX`
  *  * `GLFW_EXPOSE_NATIVE_EGL`
+ *  * `GLFW_EXPOSE_NATIVE_OSMESA`
  *
  *  These macros select which of the native access functions that are declared
  *  and which platform-specific headers to include.  It is then up your (by
@@ -113,6 +115,9 @@ extern "C" {
 #endif
 #if defined(GLFW_EXPOSE_NATIVE_EGL)
  #include <EGL/egl.h>
+#endif
+#if defined(GLFW_EXPOSE_NATIVE_OSMESA)
+ #include <GL/osmesa.h>
 #endif
 
 
@@ -284,6 +289,56 @@ GLFWAPI RROutput glfwGetX11Monitor(GLFWmonitor* monitor);
  *  @ingroup native
  */
 GLFWAPI Window glfwGetX11Window(GLFWwindow* window);
+
+/*! @brief Sets the current primary selection to the specified string.
+ *
+ *  @param[in] string A UTF-8 encoded string.
+ *
+ *  @errors Possible errors include @ref GLFW_NOT_INITIALIZED and @ref
+ *  GLFW_PLATFORM_ERROR.
+ *
+ *  @pointer_lifetime The specified string is copied before this function
+ *  returns.
+ *
+ *  @thread_safety This function must only be called from the main thread.
+ *
+ *  @sa @ref clipboard
+ *  @sa glfwGetX11SelectionString
+ *  @sa glfwSetClipboardString
+ *
+ *  @since Added in version 3.3.
+ *
+ *  @ingroup native
+ */
+GLFWAPI void glfwSetX11SelectionString(const char* string);
+
+/*! @brief Returns the contents of the current primary selection as a string.
+ *
+ *  If the selection is empty or if its contents cannot be converted, `NULL`
+ *  is returned and a @ref GLFW_FORMAT_UNAVAILABLE error is generated.
+ *
+ *  @return The contents of the selection as a UTF-8 encoded string, or `NULL`
+ *  if an [error](@ref error_handling) occurred.
+ *
+ *  @errors Possible errors include @ref GLFW_NOT_INITIALIZED and @ref
+ *  GLFW_PLATFORM_ERROR.
+ *
+ *  @pointer_lifetime The returned string is allocated and freed by GLFW. You
+ *  should not free it yourself. It is valid until the next call to @ref
+ *  glfwGetX11SelectionString or @ref glfwSetX11SelectionString, or until the
+ *  library is terminated.
+ *
+ *  @thread_safety This function must only be called from the main thread.
+ *
+ *  @sa @ref clipboard
+ *  @sa glfwSetX11SelectionString
+ *  @sa glfwGetClipboardString
+ *
+ *  @since Added in version 3.3.
+ *
+ *  @ingroup native
+ */
+GLFWAPI const char* glfwGetX11SelectionString(void);
 #endif
 
 #if defined(GLFW_EXPOSE_NATIVE_GLX)
@@ -389,9 +444,9 @@ GLFWAPI MirConnection* glfwGetMirDisplay(void);
  */
 GLFWAPI int glfwGetMirMonitor(GLFWmonitor* monitor);
 
-/*! @brief Returns the `MirSurface*` of the specified window.
+/*! @brief Returns the `MirWindow*` of the specified window.
  *
- *  @return The `MirSurface*` of the specified window, or `NULL` if an
+ *  @return The `MirWindow*` of the specified window, or `NULL` if an
  *  [error](@ref error_handling) occurred.
  *
  *  @thread_safety This function may be called from any thread.  Access is not
@@ -401,7 +456,7 @@ GLFWAPI int glfwGetMirMonitor(GLFWmonitor* monitor);
  *
  *  @ingroup native
  */
-GLFWAPI MirSurface* glfwGetMirWindow(GLFWwindow* window);
+GLFWAPI MirWindow* glfwGetMirWindow(GLFWwindow* window);
 #endif
 
 #if defined(GLFW_EXPOSE_NATIVE_EGL)
@@ -449,27 +504,61 @@ GLFWAPI EGLSurface glfwGetEGLSurface(GLFWwindow* window);
 #endif
 
 #if defined(GLFW_EXPOSE_NATIVE_OSMESA)
-/*! @brief Returns the color buffer associated with the specified window.
+/*! @brief Retrieves the color buffer associated with the specified window.
  *
- *  @param[out] width The width of the color buffer.
- *  @param[out] height The height of the color buffer.
- *  @param[out] format The pixel format of the color buffer (OSMESA_FORMAT_*).
- *  @param[out] buffer The buffer data.
- *  @return 1 if successful, or 0 if not.
+ *  @param[in] window The window whose color buffer to retrieve.
+ *  @param[out] width Where to store the width of the color buffer, or `NULL`.
+ *  @param[out] height Where to store the height of the color buffer, or `NULL`.
+ *  @param[out] format Where to store the OSMesa pixel format of the color
+ *  buffer, or `NULL`.
+ *  @param[out] buffer Where to store the address of the color buffer, or
+ *  `NULL`.
+ *  @return `GLFW_TRUE` if successful, or `GLFW_FALSE` if an
+ *  [error](@ref error_handling) occurred.
+ *
+ *  @thread_safety This function may be called from any thread.  Access is not
+ *  synchronized.
+ *
+ *  @since Added in version 3.3.
+ *
+ *  @ingroup native
  */
-GLFWAPI int glfwGetOSMesaColorBuffer(GLFWwindow* window, int* width,
-    int* height, int* format, void** buffer);
+GLFWAPI int glfwGetOSMesaColorBuffer(GLFWwindow* window, int* width, int* height, int* format, void** buffer);
 
-/*! @brief Returns the depth buffer associated with the specified window.
+/*! @brief Retrieves the depth buffer associated with the specified window.
  *
- *  @param[out] width The width of the depth buffer.
- *  @param[out] height The height of the depth buffer.
- *  @param[out] bytesPerValue The number of bytes per depth buffer element.
- *  @param[out] buffer The buffer data.
- *  @return 1 if successful, or 0 if not.
+ *  @param[in] window The window whose depth buffer to retrieve.
+ *  @param[out] width Where to store the width of the depth buffer, or `NULL`.
+ *  @param[out] height Where to store the height of the depth buffer, or `NULL`.
+ *  @param[out] bytesPerValue Where to store the number of bytes per depth
+ *  buffer element, or `NULL`.
+ *  @param[out] buffer Where to store the address of the depth buffer, or
+ *  `NULL`.
+ *  @return `GLFW_TRUE` if successful, or `GLFW_FALSE` if an
+ *  [error](@ref error_handling) occurred.
+ *
+ *  @thread_safety This function may be called from any thread.  Access is not
+ *  synchronized.
+ *
+ *  @since Added in version 3.3.
+ *
+ *  @ingroup native
  */
-GLFWAPI int glfwGetOSMesaDepthBuffer(GLFWwindow* window, int* width,
-    int* height, int* bytesPerValue, void** buffer);
+GLFWAPI int glfwGetOSMesaDepthBuffer(GLFWwindow* window, int* width, int* height, int* bytesPerValue, void** buffer);
+
+/*! @brief Returns the `OSMesaContext` of the specified window.
+ *
+ *  @return The `OSMesaContext` of the specified window, or `NULL` if an
+ *  [error](@ref error_handling) occurred.
+ *
+ *  @thread_safety This function may be called from any thread.  Access is not
+ *  synchronized.
+ *
+ *  @since Added in version 3.3.
+ *
+ *  @ingroup native
+ */
+GLFWAPI OSMesaContext glfwGetOSMesaContext(GLFWwindow* window);
 #endif
 
 #ifdef __cplusplus

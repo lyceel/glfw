@@ -57,6 +57,9 @@ static const char* vertex_shader_text =
 "}\n";
 
 static const char* fragment_shader_text =
+"#ifdef GL_ES\n"
+"precision mediump float;\n"
+"#endif\n"
 "varying vec3 color;\n"
 "void main()\n"
 "{\n"
@@ -145,13 +148,20 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+    char log[16384];
     vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
     glCompileShader(vertex_shader);
+    glGetShaderInfoLog(vertex_shader, sizeof(log), NULL, log);
+    printf("Vertex Shader Log:\n");
+    printf("%s\n", log);
 
     fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
     glCompileShader(fragment_shader);
+    glGetShaderInfoLog(fragment_shader, sizeof(log), NULL, log);
+    printf("Fragment Shader Log:\n");
+    printf("%s\n", log);
 
     program = glCreateProgram();
     glAttachShader(program, vertex_shader);
