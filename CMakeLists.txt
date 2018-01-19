@@ -30,7 +30,6 @@ option(GLFW_BUILD_TESTS "Build the GLFW test programs" ON)
 option(GLFW_BUILD_DOCS "Build the GLFW documentation" ON)
 option(GLFW_INSTALL "Generate installation target" ON)
 option(GLFW_VULKAN_STATIC "Use the Vulkan loader statically linked into application" OFF)
-option(GLFW_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
 
 if (UNIX)
     option(GLFW_USE_OSMESA "Use OSMesa for offscreen context creation" OFF)
@@ -182,7 +181,7 @@ endif()
 #--------------------------------------------------------------------
 if (GLFW_VULKAN_STATIC)
     if (VULKAN_FOUND AND VULKAN_STATIC_LIBRARY)
-        list(APPEND glfw_LIBRARIES ${VULKAN_STATIC_LIBRARY} ${GLFW_VULKAN_DEPS})
+        list(APPEND glfw_LIBRARIES "${VULKAN_STATIC_LIBRARY}" ${GLFW_VULKAN_DEPS})
         if (BUILD_SHARED_LIBS)
             message(WARNING "Linking Vulkan loader static library into GLFW")
         endif()
@@ -275,21 +274,22 @@ endif()
 #--------------------------------------------------------------------
 if (_GLFW_WAYLAND)
     find_package(ECM REQUIRED NO_MODULE)
-    list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
+    list(APPEND CMAKE_MODULE_PATH "${ECM_MODULE_PATH}")
 
-    find_package(Wayland REQUIRED)
+    find_package(Wayland REQUIRED Client Cursor Egl)
     find_package(WaylandScanner REQUIRED)
-    find_package(WaylandProtocols 1.1 REQUIRED)
+    find_package(WaylandProtocols 1.6 REQUIRED)
 
     list(APPEND glfw_PKG_DEPS "wayland-egl")
 
-    list(APPEND glfw_INCLUDE_DIRS "${Wayland_INCLUDE_DIR}")
+    list(APPEND glfw_INCLUDE_DIRS "${Wayland_INCLUDE_DIRS}")
     list(APPEND glfw_LIBRARIES "${Wayland_LIBRARIES}" "${CMAKE_THREAD_LIBS_INIT}")
 
     find_package(XKBCommon REQUIRED)
-    list(APPEND glfw_PKG_DEPS "xkbcommon")
     list(APPEND glfw_INCLUDE_DIRS "${XKBCOMMON_INCLUDE_DIRS}")
-    list(APPEND glfw_LIBRARIES "${XKBCOMMON_LIBRARY}")
+
+    include(CheckIncludeFiles)
+    check_include_files(xkbcommon/xkbcommon-compose.h HAVE_XKBCOMMON_COMPOSE_H)
 endif()
 
 #--------------------------------------------------------------------
@@ -404,6 +404,7 @@ if (GLFW_INSTALL)
         add_custom_target(uninstall
                           "${CMAKE_COMMAND}" -P
                           "${GLFW_BINARY_DIR}/cmake_uninstall.cmake")
+        set_target_properties(uninstall PROPERTIES FOLDER "GLFW3")
     endif()
 endif()
 
