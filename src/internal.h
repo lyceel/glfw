@@ -128,7 +128,7 @@ typedef enum VkStructureType
     VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR = 1000006000,
     VK_STRUCTURE_TYPE_MIR_SURFACE_CREATE_INFO_KHR = 1000007000,
     VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR = 1000009000,
-    VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK = 1000053000,
+    VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK = 1000123000,
     VK_STRUCTURE_TYPE_MAX_ENUM = 0x7FFFFFFF
 } VkStructureType;
 
@@ -456,7 +456,9 @@ struct _GLFWcursor
 struct _GLFWmapelement
 {
     uint8_t         type;
-    uint8_t         value;
+    uint8_t         index;
+    int8_t          axisScale;
+    int8_t          axisOffset;
 };
 
 // Gamepad mapping structure
@@ -596,7 +598,8 @@ const char* _glfwPlatformGetVersionString(void);
 void _glfwPlatformGetCursorPos(_GLFWwindow* window, double* xpos, double* ypos);
 void _glfwPlatformSetCursorPos(_GLFWwindow* window, double xpos, double ypos);
 void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode);
-int _glfwPlatformCreateCursor(_GLFWcursor* cursor, const GLFWimage* image, int xhot, int yhot);
+int _glfwPlatformCreateCursor(_GLFWcursor* cursor,
+                              const GLFWimage* image, int xhot, int yhot);
 int _glfwPlatformCreateStandardCursor(_GLFWcursor* cursor, int shape);
 void _glfwPlatformDestroyCursor(_GLFWcursor* cursor);
 void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor);
@@ -604,8 +607,10 @@ void _glfwPlatformSetCursor(_GLFWwindow* window, _GLFWcursor* cursor);
 const char* _glfwPlatformGetScancodeName(int scancode);
 int _glfwPlatformGetKeyScancode(int key);
 
+void _glfwPlatformFreeMonitor(_GLFWmonitor* monitor);
 void _glfwPlatformGetMonitorPos(_GLFWmonitor* monitor, int* xpos, int* ypos);
-void _glfwPlatformGetMonitorContentScale(_GLFWmonitor* monitor, float* xscale, float* yscale);
+void _glfwPlatformGetMonitorContentScale(_GLFWmonitor* monitor,
+                                         float* xscale, float* yscale);
 GLFWvidmode* _glfwPlatformGetVideoModes(_GLFWmonitor* monitor, int* count);
 void _glfwPlatformGetVideoMode(_GLFWmonitor* monitor, GLFWvidmode* mode);
 void _glfwPlatformGetGammaRamp(_GLFWmonitor* monitor, GLFWgammaramp* ramp);
@@ -626,16 +631,22 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
                               const _GLFWfbconfig* fbconfig);
 void _glfwPlatformDestroyWindow(_GLFWwindow* window);
 void _glfwPlatformSetWindowTitle(_GLFWwindow* window, const char* title);
-void _glfwPlatformSetWindowIcon(_GLFWwindow* window, int count, const GLFWimage* images);
+void _glfwPlatformSetWindowIcon(_GLFWwindow* window,
+                                int count, const GLFWimage* images);
 void _glfwPlatformGetWindowPos(_GLFWwindow* window, int* xpos, int* ypos);
 void _glfwPlatformSetWindowPos(_GLFWwindow* window, int xpos, int ypos);
 void _glfwPlatformGetWindowSize(_GLFWwindow* window, int* width, int* height);
 void _glfwPlatformSetWindowSize(_GLFWwindow* window, int width, int height);
-void _glfwPlatformSetWindowSizeLimits(_GLFWwindow* window, int minwidth, int minheight, int maxwidth, int maxheight);
+void _glfwPlatformSetWindowSizeLimits(_GLFWwindow* window,
+                                      int minwidth, int minheight,
+                                      int maxwidth, int maxheight);
 void _glfwPlatformSetWindowAspectRatio(_GLFWwindow* window, int numer, int denom);
 void _glfwPlatformGetFramebufferSize(_GLFWwindow* window, int* width, int* height);
-void _glfwPlatformGetWindowFrameSize(_GLFWwindow* window, int* left, int* top, int* right, int* bottom);
-void _glfwPlatformGetWindowContentScale(_GLFWwindow* window, float* xscale, float* yscale);
+void _glfwPlatformGetWindowFrameSize(_GLFWwindow* window,
+                                     int* left, int* top,
+                                     int* right, int* bottom);
+void _glfwPlatformGetWindowContentScale(_GLFWwindow* window,
+                                        float* xscale, float* yscale);
 void _glfwPlatformIconifyWindow(_GLFWwindow* window);
 void _glfwPlatformRestoreWindow(_GLFWwindow* window);
 void _glfwPlatformMaximizeWindow(_GLFWwindow* window);
@@ -643,7 +654,9 @@ void _glfwPlatformShowWindow(_GLFWwindow* window);
 void _glfwPlatformHideWindow(_GLFWwindow* window);
 void _glfwPlatformRequestWindowAttention(_GLFWwindow* window);
 void _glfwPlatformFocusWindow(_GLFWwindow* window);
-void _glfwPlatformSetWindowMonitor(_GLFWwindow* window, _GLFWmonitor* monitor, int xpos, int ypos, int width, int height, int refreshRate);
+void _glfwPlatformSetWindowMonitor(_GLFWwindow* window, _GLFWmonitor* monitor,
+                                   int xpos, int ypos, int width, int height,
+                                   int refreshRate);
 int _glfwPlatformWindowFocused(_GLFWwindow* window);
 int _glfwPlatformWindowIconified(_GLFWwindow* window);
 int _glfwPlatformWindowVisible(_GLFWwindow* window);
@@ -662,8 +675,13 @@ void _glfwPlatformWaitEventsTimeout(double timeout);
 void _glfwPlatformPostEmptyEvent(void);
 
 void _glfwPlatformGetRequiredInstanceExtensions(char** extensions);
-int _glfwPlatformGetPhysicalDevicePresentationSupport(VkInstance instance, VkPhysicalDevice device, uint32_t queuefamily);
-VkResult _glfwPlatformCreateWindowSurface(VkInstance instance, _GLFWwindow* window, const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface);
+int _glfwPlatformGetPhysicalDevicePresentationSupport(VkInstance instance,
+                                                      VkPhysicalDevice device,
+                                                      uint32_t queuefamily);
+VkResult _glfwPlatformCreateWindowSurface(VkInstance instance,
+                                          _GLFWwindow* window,
+                                          const VkAllocationCallbacks* allocator,
+                                          VkSurfaceKHR* surface);
 
 GLFWbool _glfwPlatformCreateTls(_GLFWtls* tls);
 void _glfwPlatformDestroyTls(_GLFWtls* tls);
@@ -684,15 +702,18 @@ void _glfwInputWindowFocus(_GLFWwindow* window, GLFWbool focused);
 void _glfwInputWindowPos(_GLFWwindow* window, int xpos, int ypos);
 void _glfwInputWindowSize(_GLFWwindow* window, int width, int height);
 void _glfwInputFramebufferSize(_GLFWwindow* window, int width, int height);
-void _glfwInputWindowContentScale(_GLFWwindow* window, float xscale, float yscale);
+void _glfwInputWindowContentScale(_GLFWwindow* window,
+                                  float xscale, float yscale);
 void _glfwInputWindowIconify(_GLFWwindow* window, GLFWbool iconified);
 void _glfwInputWindowMaximize(_GLFWwindow* window, GLFWbool maximized);
 void _glfwInputWindowDamage(_GLFWwindow* window);
 void _glfwInputWindowCloseRequest(_GLFWwindow* window);
 void _glfwInputWindowMonitor(_GLFWwindow* window, _GLFWmonitor* monitor);
 
-void _glfwInputKey(_GLFWwindow* window, int key, int scancode, int action, int mods);
-void _glfwInputChar(_GLFWwindow* window, unsigned int codepoint, int mods, GLFWbool plain);
+void _glfwInputKey(_GLFWwindow* window,
+                   int key, int scancode, int action, int mods);
+void _glfwInputChar(_GLFWwindow* window,
+                    unsigned int codepoint, int mods, GLFWbool plain);
 void _glfwInputScroll(_GLFWwindow* window, double xoffset, double yoffset);
 void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods);
 void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos);
@@ -707,7 +728,8 @@ void _glfwInputMonitor(_GLFWmonitor* monitor, int action, int placement);
 void _glfwInputMonitorWindow(_GLFWmonitor* monitor, _GLFWwindow* window);
 
 #if defined(__GNUC__)
-void _glfwInputError(int code, const char* format, ...) __attribute__((format(printf, 2, 3)));
+void _glfwInputError(int code, const char* format, ...)
+    __attribute__((format(printf, 2, 3)));
 #else
 void _glfwInputError(int code, const char* format, ...);
 #endif

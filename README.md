@@ -106,9 +106,9 @@ located in the `deps/` directory.
  - [stb\_image\_write](https://github.com/nothings/stb) for writing images to disk
  - [Vulkan headers](https://www.khronos.org/registry/vulkan/) for Vulkan tests
 
-The Vulkan example additionally requires the Vulkan SDK to be installed, or it
-will not be included in the build.  On macOS you need to provide the path to the
-MoltenVK SDK manually as it has no standard installation location.
+The Vulkan example additionally requires the LunarG Vulkan SDK to be installed,
+or it will not be included in the build.  On macOS you need to provide the path
+to the SDK manually as it has no standard installation location.
 
 The documentation is generated with [Doxygen](http://doxygen.org/) if CMake can
 find that tool.
@@ -178,6 +178,8 @@ information on what to include when reporting a bug.
 - Added `GLFW_OSMESA_CONTEXT_API` for creating OpenGL contexts with
   [OSMesa](https://www.mesa3d.org/osmesa.html) (#281)
 - Added `GenerateMappings.cmake` script for updating gamepad mappings
+- Made `glfwCreateWindowSurface` emit an error when the window has a context
+  (#1194,#1205)
 - Deprecated window parameter of clipboard string functions
 - Deprecated charmods callback
 - Removed `GLFW_USE_RETINA` compile-time option
@@ -231,6 +233,8 @@ information on what to include when reporting a bug.
 - [X11] Bugfix: Selection I/O reported but did not support `COMPOUND_TEXT`
 - [X11] Bugfix: Latin-1 text read from selections was not converted to UTF-8
 - [X11] Bugfix: NVidia EGL would segfault if unloaded before closing the display
+- [Linux] Added workaround for missing `SYN_DROPPED` in pre-2.6.39 kernel
+          headers (#1196)
 - [Linux] Moved to evdev for joystick input (#906,#1005)
 - [Linux] Bugfix: Event processing did not detect joystick disconnection (#932)
 - [Linux] Bugfix: The joystick device path could be truncated (#1025)
@@ -260,6 +264,7 @@ information on what to include when reporting a bug.
 - [Cocoa] Bugfix: Window title was lost when full screen or undecorated (#1082)
 - [Cocoa] Bugfix: Window was resized twice when entering full screen (#1085)
 - [Cocoa] Bugfix: Duplicate size events were not filtered (#1085)
+- [Cocoa] Bugfix: Event polling did not initialize AppKit if necessary (#1218)
 - [WGL] Added support for `WGL_EXT_colorspace` for OpenGL ES contexts
 - [WGL] Added support for `WGL_ARB_create_context_no_error`
 - [GLX] Added support for `GLX_ARB_create_context_no_error`
@@ -442,6 +447,7 @@ skills.
  - Ricardo Vieira
  - Nicholas Vitovitch
  - Simon Voordouw
+ - Corentin Wallez
  - Torsten Walluhn
  - Patrick Walton
  - Xo Wang

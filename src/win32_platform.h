@@ -120,6 +120,8 @@ typedef struct
     HRGN hRgnBlur;
     BOOL fTransitionOnMaximized;
 } DWM_BLURBEHIND;
+#else
+ #include <dwmapi.h>
 #endif /*Windows Vista*/
 
 #ifndef DPI_ENUMS_DECLARED
@@ -398,7 +400,7 @@ void _glfwUpdateKeyNamesWin32(void);
 void _glfwInitTimerWin32(void);
 
 void _glfwPollMonitorsWin32(void);
-GLFWbool _glfwSetVideoModeWin32(_GLFWmonitor* monitor, const GLFWvidmode* desired);
+void _glfwSetVideoModeWin32(_GLFWmonitor* monitor, const GLFWvidmode* desired);
 void _glfwRestoreVideoModeWin32(_GLFWmonitor* monitor);
 void _glfwGetMonitorContentScaleWin32(HMONITOR handle, float* xscale, float* yscale);
 
